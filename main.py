@@ -1,8 +1,15 @@
 from bs4 import BeautifulSoup
 import requests
 
-# TODO Create functions that parse content for each challenge website
-# TODO 
+## TODOS
+# TODO #1 Create functions that parse content for each challenge website
+# TODO #2 Create datamodel class
+# TODO #3 Create get_links() function to retrieve google links for writeups
+# TODO #4 Read chapter 3 from https://github.com/REMitchell/python-scraping (getNextLink)
+# getNextLink - from chapter 3 - return random link on a page
+# TODO #5 Review documentation
+# TODO #6 Create deadlines
+#
 
 
 if __name__ == "__main__":
