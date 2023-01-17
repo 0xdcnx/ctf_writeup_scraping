@@ -1,26 +1,15 @@
 from bs4 import BeautifulSoup
 import requests
 
-# -------------------- TODOS------------------------
-# TODO #1 Create functions that parse content for each challenge website
-# TODO #2 Create datamodel class for CTF challenge content (CTF website, challenge name, category, points, the writeup, and solution/flag)
-# TODO #3 Create get_links() function to retrieve google links for writeups
-# TODO #4 Read chapter 3 from https://github.com/REMitchell/python-scraping (getNextLink)
-# getNextLink - from chapter 3 - return random link on a page
-# TODO #5 Review documentation
-# TODO #6 Create deadlines
-# TODO #7 Improve datamodel class definition. Create another layer of abstractio / or add more fields to reflect collected data
-# #
-
 
 class Content:
-    def __init__(self, url, header, challenges):
+    def __init__(self, url, header, challenges: list):
         self.url = url
         # self.title = title
         self.header = header
         self.challenges = challenges  # See how to improve
 
-    def get_obj(self):
+    def get_obj(self) -> dict:
         return {self.header: self.challenges}
 
 
@@ -43,7 +32,7 @@ def get_overthetwire_challenges(url) -> dict:
     """
     Function that returns a dict of challenges organized by categories for overthewire.org
     key = Challenge category
-    value = list of challenges
+    value = list of challenges organized as dicts
     
     Returns None if errors were found when creating a BeautifulSoup object
     """
@@ -55,13 +44,18 @@ def get_overthetwire_challenges(url) -> dict:
             header = ul.li.sh.text
             challenges = ul.find_all("a", class_="updatedmarkercontainer")
             challenges_ = [challenge.text.strip() for challenge in challenges]
-            content = Content(url, header, challenges_)
+            links = [challenge["href"] for challenge in challenges]
 
+            """
+            Creates a list of dictionaries. Each dict has the challenge name and the link
+            """
+            challenges_and_links = [
+                dict({"name": c, "link": url.replace("/wargames/", l)})
+                for c, l in zip(challenges_, links)
+            ]
+
+            content = Content(url, header, challenges_and_links)
             obj.update(content.get_obj())
-            # for index, challenge in enumerate(challenges):
-            #     challenge_name = challenge.text.strip()
-            #     print(f"- {challenge_name}")
-
         return obj
     else:
         print("Unable to get a response...\nCheck the link...")
