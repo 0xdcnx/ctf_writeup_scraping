@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+import sys
 
 
 class Content:
@@ -13,7 +14,7 @@ class Content:
         return {self.header: self.challenges}
 
 
-def get_soup(url):
+def get_soup(url: str):
     """ 
     Returns BeautifulSoup object from a given url only if status code is 200 and no Exceptions are thrown
     Otherwise returns None
@@ -61,9 +62,74 @@ def get_overthetwire_challenges(url) -> dict:
         print("Unable to get a response...\nCheck the link...")
         return None
 
+def usage():
+    print(f"Usage: python {sys.argv[0]} otw [challenge] [level]")
+    print("Without mentioning the optional arguments [challenge] and [level], prints a list of wargame challenges in overthewire.org")
+    print("If only [challenge] is passed, lists all the available levels for that challenge.")
+    print("If [challenge] and [level] are passed, details for that level are printed.")
+
+def otw():
+    url = "https://overthewire.org/wargames/"
+    otw = get_overthetwire_challenges(url)
+    print(f"Listing challenges for {url}...\n")
+    for category, challenges in otw.items():
+        print(f"{category} challenges:\n--------------------")
+        for index, challenge in enumerate(challenges):
+            print(f"{index+1}. {challenge['name']}")
+        print('')
+
+
+
+def get_challenge_link(challenge_name) -> str:
+    return_url = None
+    url = "https://overthewire.org/wargames/"
+    otw = get_overthetwire_challenges(url)
+    print(f"Searching for challenge...")
+    for challenges in otw.values():
+        for challenge in challenges:
+            if(challenge['name'].lower() == challenge_name.lower()):
+                return_url = challenge['link']
+                return return_url
+
+    return None
+
+def list_levels(url) -> None:
+    soup = get_soup(url)
+    if soup is not None:
+        sidemenu = soup.find("div", id="sshinfo")
+        # info = sidemenu.find_all('div', id='sshinfo')
+        print(soup)
+    else:
+        print("There was problem parsing the link...sorry")
 
 if __name__ == "__main__":
-    url = "https://overthewire.org/wargames/"
 
-    otw = get_overthetwire_challenges(url)
-    print(otw)
+    """
+    Currently only works with overthewire.org (otw argument)
+    Need to update code to allow other challenge websites
+    """
+    match (len(sys.argv)):
+        case 1: usage()
+            
+        case 2: 
+            if sys.argv[1] != 'otw':
+                usage()
+            else:
+                otw()
+        case 3: 
+            if sys.argv[1] != 'otw':
+                usage()
+            else:
+                url = get_challenge_link(sys.argv[2])
+                if url == None:
+                    print(f"Challenge [{sys.argv[2]}] not found...try executing again without [challenge] to see the available challenges.")
+                else:
+                    print(f"Challenge [{sys.argv[2]}] found!")
+                    list_levels(url)
+        case 4: pass
+        
+    
+    
+    # print(otw["Online"][0])
+    # dict.
+    # list.
