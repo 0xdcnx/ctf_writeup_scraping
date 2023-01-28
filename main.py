@@ -1,4 +1,8 @@
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 import requests
 import sys
 
@@ -27,6 +31,33 @@ def get_soup(url: str):
         print(ex.strerror())
         return None
     return BeautifulSoup(request.text, "lxml")
+
+def get_webdriver(url, keyword):
+    """
+    Returns a Selenium webdriver from a given url 
+    Checks if @param keyword is in title. If not, returns None
+    """
+    try:
+        """
+        Setting Options.add_argument to use '--headless' maskes it so that no browser window is loaded when runnung Selenium
+        """
+        options = Options()
+        options.add_argument('--headless')
+        driver = webdriver.Firefox(options=options)
+        driver.get(url)
+        assert keyword.lower() in driver.title.lower(), f'The webdriver was not created because {keyword} was not found in the title. This may or may not be a problem with the url {url}.'
+        return driver
+        
+    except AssertionError as msg:
+        print(msg)
+        return None
+
+
+def usage():
+    print(f"Usage: python {sys.argv[0]} otw [challenge] [level]\n")
+    print("- Without mentioning the optional arguments [challenge] and [level], prints a list of wargame challenges in overthewire.org.\n")
+    print("- If only [challenge] is passed, lists all the available levels for that challenge.\n")
+    print("- If [challenge] and [level] are passed, details for that level are printed.")
 
 
 def get_overthetwire_challenges(url) -> dict:
@@ -62,11 +93,6 @@ def get_overthetwire_challenges(url) -> dict:
         print("Unable to get a response...\nCheck the link...")
         return None
 
-def usage():
-    print(f"Usage: python {sys.argv[0]} otw [challenge] [level]")
-    print("Without mentioning the optional arguments [challenge] and [level], prints a list of wargame challenges in overthewire.org")
-    print("If only [challenge] is passed, lists all the available levels for that challenge.")
-    print("If [challenge] and [level] are passed, details for that level are printed.")
 
 def otw():
     url = "https://overthewire.org/wargames/"
@@ -93,12 +119,15 @@ def get_challenge_link(challenge_name) -> str:
 
     return None
 
-def list_levels(url) -> None:
-    soup = get_soup(url)
-    if soup is not None:
-        sidemenu = soup.find("div", id="sshinfo")
+def list_levels(url, challenge) -> None:
+    # soup = get_soup(url)
+    driver = get_webdriver(url, challenge)
+    if driver is not None:
+        # sidemenu = soup.find("div", id="sshinfo")
         # info = sidemenu.find_all('div', id='sshinfo')
-        print(soup)
+        sidemenu = driver.find_element(By.ID, 'sidemenu')
+        # print(sidemenu.get_attribute('ul'))
+        print(sidemenu.text)
     else:
         print("There was problem parsing the link...sorry")
 
@@ -125,11 +154,8 @@ if __name__ == "__main__":
                     print(f"Challenge [{sys.argv[2]}] not found...try executing again without [challenge] to see the available challenges.")
                 else:
                     print(f"Challenge [{sys.argv[2]}] found!")
-                    list_levels(url)
+                    print("Loading levels. Please wait...")
+                    list_levels(url, sys.argv[2])
         case 4: pass
-        
     
-    
-    # print(otw["Online"][0])
-    # dict.
-    # list.
+
